@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Fix absolute paths in git subrepos
 
 When a repository with subrepos is cloned using a git version 1.7.9.*
