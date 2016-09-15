@@ -1,0 +1,11 @@
+Source: git-relativize
+Section: devel
+Priority: extra
+Maintainer: Javier Santacruz <javier.santacruz@avature.net>
+Build-Depends: debhelper (>= 9), python, dh-virtualenv
+Standards-Version: 3.9.5
+
+Package: git-relativize
+Architecture: all
+Depends: python, git
+Description: Avature public list command line tool
