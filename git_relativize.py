@@ -52,7 +52,7 @@ def relativize(path):
 def list_submodules(path):
     """Lists submodules within a given git dir"""
     submodules = [
-        root for root, files, dirs
+        root for root, dirs, files
         in os.walk(os.path.join(path, 'modules'))
         if 'config' in files
     ]
