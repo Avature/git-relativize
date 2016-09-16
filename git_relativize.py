@@ -74,7 +74,7 @@ def fix_submodule_worktree(path):
     worktree = git_config_get(path, 'core.worktree')
     logging.debug('Found worktree %s in config file %s', worktree, path)
 
-    if not is_absolute_path(worktree):
+    if not os.path.isabs(worktree):
         logging.warning('No need to fix %s file as its worktree '
                         'its already a relative path: %s', path, worktree)
         return
@@ -89,30 +89,26 @@ def fix_submodule_worktree(path):
 
 def fix_submodule_gitdir(path):
     """Fixes gitdir file in submodule as from config file"""
+    gitdir_path = os.path.dirname(path)
     worktree = git_config_get(path, 'core.worktree')
-    if not is_absolute_path(worktree):
-        worktree = os.path.abspath(os.path.join(path, worktree))
-        logging.debug('Getting path to worktree as %s', worktree)
+    logging.debug('Worktree is %s', worktree)
+    if not os.path.isabs(worktree):
+        worktree = os.path.abspath(os.path.join(gitdir_path, worktree))
+        logging.debug('Calculated worktree path as %s', worktree)
 
     gitdir_path = os.path.join(worktree, '.git')
     logging.debug('Fixing gitdir at %s with worktree %s',
                   gitdir_path, worktree)
 
-    if not os.path.exists(gitdir_path):
+    if not os.path.exists(gitfile_path):
         logging.warning('No need to fix .git file as it does not exists at %s '
                         'Submodule might be not initialized.', gitdir_path)
         return
 
     relative = os.path.relpath(gitdir_path, worktree)
-    logging.debug('Fixing absolute gitdir path from %s to %s',
-                 worktree, relative)
-
-    with io.open(gitdir_path, 'w') as stream:
+    logging.debug('Writing %s file with %s', gitfile_path, relative)
+    with io.open(gitfile_path, 'w') as stream:
         stream.write(u'gitdir: ' + relative)
-
-
-def is_absolute_path(path):
-    return path.startswith('/')
 
 
 def find_git_dir(directory):
