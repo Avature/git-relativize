@@ -36,7 +36,8 @@ def relativize(path):
 
     for subpath in list_submodules(git_dir):
         name = os.path.basename(subpath)
-        logging.info('Fixing submodule %s at %s', name, subpath)
+        logging.info('Fixing submodule %s', name)
+        logging.debug('Submodule %s path is %s', name, subpath)
 
         config_path = os.path.join(subpath, 'config')
         if not os.path.exists(config_path):
@@ -56,7 +57,13 @@ def list_submodules(path):
         in os.walk(os.path.join(path, 'modules'))
         if 'config' in files
     ]
-    logging.debug('Found submodules: %s at %s', ', '.join(submodules), path)
+    if submodules:
+        logging.info('Found %d submodules: %s', len(submodules),
+                      ', '.join(map(os.path.basename, submodules)))
+        logging.debug('Found submodules at %s:\n\t%s',
+                      path, '\n\t'.join(submodules))
+    else:
+        logging.info('No submodules')
     return submodules
 
 
@@ -96,13 +103,13 @@ def fix_submodule_gitdir(path):
         worktree = os.path.abspath(os.path.join(gitdir_path, worktree))
         logging.debug('Calculated worktree path as %s', worktree)
 
-    gitdir_path = os.path.join(worktree, '.git')
-    logging.debug('Fixing gitdir at %s with worktree %s',
-                  gitdir_path, worktree)
+    gitfile_path = os.path.join(worktree, '.git')
+    logging.debug('The .git file should be at %s and point to %s',
+                  gitfile_path, gitdir_path)
 
     if not os.path.exists(gitfile_path):
         logging.warning('No need to fix .git file as it does not exists at %s '
-                        'Submodule might be not initialized.', gitdir_path)
+                        'Submodule might be not initialized.', gitfile_path)
         return
 
     relative = os.path.relpath(gitdir_path, worktree)
@@ -191,6 +198,8 @@ def main():
         if not relativize(path):
             error = True
             logging.error('Could not fix %s', path)
+        else:
+            logging.debug('Fixed %s', path)
 
     sys.exit(2 if error else 0)
 
