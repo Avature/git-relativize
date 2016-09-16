@@ -4,7 +4,7 @@ import os
 import shutil
 import tempfile
 
-from hamcrest import assert_that, is_
+from hamcrest import assert_that, is_, has_length
 
 from git_relativize import (relativize, execute, list_submodules, find_git_dir,
                             git_config_get)
@@ -25,23 +25,26 @@ def create_repo(name):
     return path
 
 
-def create_repository():
-    master_repo = create_repo('master')
+def add_subrepo(master, origin, dest):
+    origin = 'file://' + origin
+    execute(['git', 'submodule', 'add', origin, dest], cwd=master)
+    execute('git submodule update --init'.split(), cwd=master)
+
+
+def create_repository(name):
+    master_repo = create_repo(name)
     subrepo_names = ('first', 'second', 'third')
-    subrepos = [create_repo(name) for name in subrepo_names]
+    subrepos = [create_repo(n) for n in subrepo_names]
 
     # Place subrepos in a subdirectory
     # This replicates iats environment with jscore/phpcore and others
     os.mkdir(os.path.join(master_repo, 'subrepos'))
 
     # Add submodules
-    for name, path in zip(subrepo_names, subrepos):
-        origin = 'file://' + path
-        dest = os.path.join('subrepos', name)
-        execute(['git', 'submodule', 'add', origin, dest], cwd=master_repo)
+    for subname, path in zip(subrepo_names, subrepos):
+        add_subrepo(master_repo, path, os.path.join('subrepos', subname))
 
-    # Initialize submodules
-    execute('git submodule update --init'.split(), cwd=master_repo)
+    execute('git commit -am Subrepos'.split())
 
     return master_repo, subrepos
 
@@ -63,7 +66,7 @@ def assert_subrepos_relative(path):
 
 class TestRun(object):
     def setup(self):
-        self.repo, self.subrepos = create_repository()
+        self.repo, self.subrepos = create_repository('master')
 
     def teardown(self):
         for repo in [self.repo] + self.subrepos:
@@ -96,3 +99,11 @@ class TestRun(object):
             gitdir_abs = os.path.abspath(os.path.join(worktree, gitdir_rel))
 
             assert_that(gitdir_abs, is_(path))
+
+    def test_subrepos_get_fixed_recursively(self):
+        # Create a repo with subrepos instead or master repo
+        subrepo_path, _ = create_repository('submaster')
+        add_subrepo(self.repo, subrepo_path, 'sub_master')
+
+        submodules = list_submodules(self.repo)
+        assert_that(submodules, has_length(4))
