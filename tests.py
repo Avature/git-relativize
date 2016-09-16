@@ -6,7 +6,8 @@ import tempfile
 
 from hamcrest import assert_that, is_
 
-from git_relativize import relativize, execute, list_submodules, find_git_dir
+from git_relativize import (relativize, execute, list_submodules, find_git_dir,
+                            git_config_get)
 
 
 def create_repo(name):
@@ -45,20 +46,14 @@ def create_repository():
     return master_repo, subrepos
 
 
-def subrepo_is_absolute(path):
-    with open(os.path.join(path, 'config')) as stream:
-        if 'worktree = /' in stream.read():
-            return True
-        else:
-            print('submodule ' + path + ' is not absolute')
-            return False
+def get_worktree(path):
+    config_path = os.path.join(path, 'config')
+    return git_config_get(config_path, 'core.worktree')
 
 
 def has_absolute_subrepo(path):
-    return any(
-        subrepo_is_absolute(subrepo)
-        for subrepo in list_submodules(find_git_dir(path))
-    )
+    return any(os.path.isabs(get_worktree(subrepo))
+               for subrepo in list_submodules(find_git_dir(path)))
 
 
 def assert_subrepos_relative(path):
@@ -75,5 +70,29 @@ class TestRun(object):
             shutil.rmtree(repo)
 
     def test_it_should_run_ok(self):
-        assert_that(relativize(self.repo), is_(True))
+        result = relativize(self.repo)
+
+        assert_that(result, is_(True))
         assert_subrepos_relative(self.repo)
+
+    def test_subrepos_worktree_points_to_its_place(self):
+        relativize(self.repo)
+
+        for path in list_submodules(self.repo):
+            name = os.path.basename(path)
+            destination = os.path.join(self.repo, 'subrepos', name)
+            worktree_abs = os.path.abspath(path, get_worktree(path))
+
+            assert_that(destination, is_(worktree_abs))
+
+    def test_subrepos_gitdir_file_points_to_git_directory(self):
+        relativize(self.repo)
+
+        for path in list_submodules(self.repo):
+            name = os.path.basename(path)
+            worktree = os.path.join(self.repo, 'subrepos', name)
+            with open(os.path.join(worktree, '.git')) as stream:
+                gitdir_rel = stream.read().split(':')[1].strip()
+            gitdir_abs = os.path.abspath(os.path.join(worktree, gitdir_rel))
+
+            assert_that(gitdir_abs, is_(path))
