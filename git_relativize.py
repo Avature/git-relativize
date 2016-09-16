@@ -118,26 +118,12 @@ def fix_submodule_gitdir(path):
         stream.write(u'gitdir: ' + relative)
 
 
-def find_git_dir(directory):
+def find_git_dir(path):
     """Finds git dir within given path"""
-    path = directory
-    if is_git_worktree(path):
-        path = os.path.join(path, '.git')
-
-    if is_git_dir(path):
-        return path
-
-    logging.error('Could not find .git repo in %s', path)
-
-
-def is_git_worktree(path):
-    command = 'git rev-parse --is-inside-work-tree'.split()
-    return execute_output(command, cwd=path) == 'true'
-
-
-def is_git_dir(path):
-    command = 'git rev-parse --is-inside-git-dir'.split()
-    return execute_output(command, cwd=path) == 'true'
+    gitdir = execute_output('git rev-parse --git-dir'.split(), cwd=path)
+    gitdir = os.path.abspath(os.path.join(path, gitdir))
+    logging.debug('Found git repository at: %s', gitdir)
+    return gitdir
 
 
 def execute_output(command, **kwargs):
