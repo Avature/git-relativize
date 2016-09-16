@@ -152,10 +152,11 @@ def execute(command, fail=True, **kwargs):
 
     if process.returncode != 0:
         if fail:
-            logging.error('Command: %s failed with code %d\n'
-                          'stdout:\n%s\n\nstderr:%s\n',
-                          command, process.returncode, stdout, stderr)
-            sys.exit(process.returncode)
+            message = 'Command: %s failed with code %d\n'\
+                'stdout:\n%s\n\nstderr:%s\n'\
+                % (command, process.returncode, stdout, stderr)
+            logging.error(message)
+            raise RuntimeError(message)
         else:
             logging.warning('Command: %s failed with code %d',
                             command, process.returncode)
