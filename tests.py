@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import atexit
 import shutil
 import tempfile
 
@@ -11,7 +12,9 @@ from git_relativize import (relativize, execute, list_submodules, find_git_dir,
 
 
 def create_repo(name):
-    path = os.path.join(tempfile.mkdtemp('git-relativize-tests'), name)
+    tmpdir = tempfile.mkdtemp('git-relativize-tests')
+    cleanup(tmpdir)
+    path = os.path.join(tmpdir, name)
     os.mkdir(path)
     execute('git init'.split(), cwd=path)
 
@@ -53,6 +56,13 @@ def create_repository(name):
     return master_repo, subrepos
 
 
+def cleanup(path):
+    def _():
+        if os.path.exists(path):
+            shutil.rmtree(path)
+    atexit.register(_)
+
+
 def get_worktree(path):
     config_path = os.path.join(path, 'config')
     return git_config_get(config_path, 'core.worktree')
@@ -71,10 +81,6 @@ def assert_subrepos_relative(path):
 class TestRun(object):
     def setup(self):
         self.repo, self.subrepos = create_repository('master')
-
-    def teardown(self):
-        for repo in [self.repo] + self.subrepos:
-            shutil.rmtree(repo)
 
     def test_it_should_run_ok(self):
         result = relativize(self.repo)
@@ -126,7 +132,7 @@ class TestRun(object):
 
     def test_subrepos_get_fixed_recursively(self):
         # Create a repo with subrepos instead or master repo
-        origin, _ = create_repository('submaster')
+        origin, subrepos = create_repository('submaster')
         add_subrepo(self.repo, origin, 'sub_master')
         subrepo_path = os.path.join(self.repo, '.git/modules', 'sub_master')
 
