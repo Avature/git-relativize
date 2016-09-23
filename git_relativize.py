@@ -126,9 +126,9 @@ def find_git_dir(path):
     return gitdir
 
 
-def execute_output(command, **kwargs):
+def execute_output(command, encoding='utf-8', **kwargs):
     ret, stdout, _ = execute(command, **kwargs)
-    return stdout.strip()
+    return stdout.strip().decode(encoding)
 
 
 def execute(command, fail=True, **kwargs):
