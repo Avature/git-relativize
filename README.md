@@ -85,7 +85,12 @@ Create a virtualenv and install the app in dev mode:
 Testing
 -------
 
-To run the test, install the testing dependencies and run `nosetests`:
+Install tox and run tests for all environments with it:
+
+    pip install tox
+    tox
+
+To run the tests, install the testing dependencies and run `nosetests`:
 
     (env) pip install -r dev-requirements.txt
     (env) nosetests
