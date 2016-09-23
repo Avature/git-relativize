@@ -15,6 +15,7 @@ in modern versions of git.
 To do that, replace absolute paths with relative paths assuming the working
 directory base is the same directory where the file is.
 """
+from __future__ import with_statement
 import io
 import os
 import sys
