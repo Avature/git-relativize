@@ -3,8 +3,8 @@ require "formula"
 class GitRelativize < Formula
   version "0.0.1"
   desc "Fix git subrepositories with absolute paths"
-  url "https://gitlab.xcade.net/javier.santacruz/git-relativize.git", :using => :git
-  homepage "https://gitlab.xcade.net/javier.santacruz/git-relativize"
+  url "https://github.com/Avature/git-relativize.git", :using => :git
+  homepage "https://github.com/Avature/git-relativize"
   depends_on :python
   depends_on "git"
 
