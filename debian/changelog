@@ -1,5 +1,5 @@
-git-relativize (0.0.1) UNRELEASED; urgency=low
+git-relativize (1.0.0) precise; urgency=low
 
-  * Initial release.
+  * Initial version
 
- -- Javier Santacruz <javier.santacruz@avature.net>  Thu, 15 Sep 2016 15:48:04 +0200
+ -- Javier Santacruz <javier.santacruz@avature.net>  Tue, 11 Oct 2016 16:17:21 +0200
